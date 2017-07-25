@@ -2,6 +2,7 @@ import QtQuick 2.4
 import QtQuick.Controls 1.3
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.2
+import Figure 1.0
 
 ApplicationWindow {
     title: qsTr("Chess")
@@ -11,10 +12,30 @@ ApplicationWindow {
     
     property int squareSize: 70
 
-    property var images: [
-      {'imgPath' : "/images/white_pawn.svg"},
-      {'imgPath' : "/images/black_pawn.svg"},
-    ]
+    function getImgPath(type, piece)
+    {
+        var imgPath = ""
+
+        switch (type) {
+        case Figure.FIGURE_BLACK: imgPath += "/images/black"; break;
+        case Figure.FIGURE_WHITE:
+        default:
+            imgPath += "/images/white"; break;
+        }
+
+        switch (piece) {
+        case Figure.FIGURE_KING: imgPath += "_king.svg"; break;
+        case Figure.FIGURE_QUEEN: imgPath += "_queen.svg"; break;
+        case Figure.FIGURE_ROOK: imgPath += "_rook.svg"; break;
+        case Figure.FIGURE_KNIGHT: imgPath += "_knight.svg"; break;
+        case Figure.FIGURE_BISHOP: imgPath += "_bishop.svg"; break;
+        case Figure.FIGURE_PAWN:
+        default:
+            imgPath += "_pawn.svg"; break;
+        }
+
+        return imgPath
+    }
 
     Item {
       id: gameBoard
@@ -39,7 +60,7 @@ ApplicationWindow {
           x: squareSize * positionX
           y: squareSize * positionY
 
-          source: images[type].imgPath
+          source: getImgPath(type, piece)
           
           MouseArea {
             anchors.fill: parent

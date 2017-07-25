@@ -14,5 +14,6 @@
         <file>images/white_rook.svg</file>
         <file>qml/main.qml</file>
         <file>qml/startingScreen.qml</file>
+        <file>images/black_pawn.svg</file>
     </qresource>
 </RCC>

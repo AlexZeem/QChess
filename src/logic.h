@@ -5,7 +5,24 @@
 class Logic: public QAbstractListModel
 {
     Q_OBJECT
+    Q_ENUMS(FigureType FigurePiece)
+
 public:
+    enum FigureType
+    {
+        FIGURE_WHITE = 0,
+        FIGURE_BLACK
+    };
+
+    enum FigurePiece
+    {
+        FIGURE_KING = 0,
+        FIGURE_QUEEN,
+        FIGURE_ROOK,
+        FIGURE_KNIGHT,
+        FIGURE_BISHOP,
+        FIGURE_PAWN
+    };
 
     enum GlobalConstants {
         BOARD_SIZE = 8
@@ -13,6 +30,7 @@ public:
 
     enum Roles {
         Type = Qt::UserRole,
+        Piece,
         PositionX,
         PositionY,
     };
