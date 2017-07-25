@@ -21,6 +21,7 @@ struct Logic::Impl
 
   void initPosition();
   int findByPosition(int x, int y);
+  bool canMove(int index, int toX, int toY);
 };
 
 void Logic::Impl::initPosition()
@@ -62,6 +63,29 @@ int Logic::Impl::findByPosition(int x, int y) {
   return -1;
 }
 
+bool Logic::Impl::canMove(int index, int toX, int toY)
+{
+    Figure figure = figures[index];
+    qDebug() << "canMove" << figure.type << figure.piece << index << toX << toY;
+
+    if (figure.type == FIGURE_WHITE && figure.piece == FIGURE_PAWN) {
+        if (figure.y - toY > (figure.y == 6 ? 2 : 1) || figure.y - toY <= 0) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    if (figure.type == FIGURE_BLACK && figure.piece == FIGURE_PAWN) {
+        if (toY - figure.y > (figure.y == 1 ? 2 : 1) || toY - figure.y <= 0) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 Logic::Logic(QObject *parent)
     : QAbstractListModel(parent)
@@ -121,12 +145,23 @@ void Logic::clear() {
 
 bool Logic::move(int fromX, int fromY, int toX, int toY) {
   int index = impl->findByPosition(fromX, fromY);
+  qDebug() << "move" << index << fromX << fromY << toX << toY;
 
   if (index < 0) return false;
   
-  if (toX < 0 || toX >= BOARD_SIZE || toY < 0 || toY >= BOARD_SIZE || impl->findByPosition(toX, toY) >= 0) {
+  if (toX < 0 || toX >= BOARD_SIZE || toY < 0 || toY >= BOARD_SIZE) {
     return false;
   }
+
+  if (impl->findByPosition(toX, toY) >= 0) {
+      qDebug() << "fight!";
+      return false;
+  }
+
+  if (!impl->canMove(index, toX, toY)) {
+      return false;
+  }
+
   impl->figures[index].x = toX;
   impl->figures[index].y = toY;
   QModelIndex topLeft = createIndex(index, 0);

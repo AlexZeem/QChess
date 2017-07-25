@@ -39,7 +39,7 @@ public:
     explicit Logic(QObject *parent = 0);
     ~Logic();
 
-    Q_PROPERTY(int boardSize READ boardSize CONSTANT);
+    Q_PROPERTY(int boardSize READ boardSize CONSTANT)
     int boardSize() const;
 
     Q_INVOKABLE void clear();
