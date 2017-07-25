@@ -1,11 +1,14 @@
 #pragma once
 #include <memory>
 #include <QAbstractListModel>
+#include <QVariantList>
 
 class Logic: public QAbstractListModel
 {
     Q_OBJECT
     Q_ENUMS(FigureType FigurePiece)
+
+    Q_PROPERTY(QVariantList availableMoves READ availableMoves NOTIFY availableMovesChanged)
 
 public:
     enum FigureType
@@ -42,8 +45,14 @@ public:
     Q_PROPERTY(int boardSize READ boardSize CONSTANT)
     int boardSize() const;
 
+    QVariantList availableMoves();
+
     Q_INVOKABLE void clear();
     Q_INVOKABLE bool move(int fromX, int fromY, int toX, int toY);
+    Q_INVOKABLE void calculateAvailableMoves(int fromX, int fromY);
+
+signals:
+    void availableMovesChanged();
 
 protected:
     int rowCount(const QModelIndex & parent) const override;

@@ -38,69 +38,100 @@ ApplicationWindow {
     }
 
     Item {
-      id: gameBoard
-      x: 0
-      y: 0
-      width : logic.boardSize * squareSize
-      height: logic.boardSize * squareSize
-      
-      Image {
-        source: "/images/chess_board.jpg"
-        height: gameBoard.height
-        width: gameBoard.width
-      }
-      
-      Repeater {
-        model: logic
+        id: gameBoard
+        x: 0
+        y: 0
+        width : logic.boardSize * squareSize
+        height: logic.boardSize * squareSize
+
+        property bool figureChosen: false
 
         Image {
-          height: squareSize
-          width : squareSize
-
-          x: squareSize * positionX
-          y: squareSize * positionY
-
-          source: getImgPath(type, piece)
-          
-          MouseArea {
-            anchors.fill: parent
-            drag.target: parent
-
-            property int startX: 0
-            property int startY: 0
-
-            onPressed: {
-              startX = parent.x;
-              startY = parent.y;
-            }
-
-            onReleased: {
-              var fromX = startX / squareSize;
-              var fromY = startY / squareSize;
-              var toX   = (parent.x + mouseX) / squareSize;
-              var toY   = (parent.y + mouseY) / squareSize;
-
-              if (!logic.move(fromX, fromY, toX, toY)) {
-                parent.x = startX;
-                parent.y = startY;
-              }
-            }
-          }
+            source: "/images/chess_board.jpg"
+            height: gameBoard.height
+            width: gameBoard.width
         }
-      }
+
+        Repeater {
+            model: logic
+
+            Image {
+                height: squareSize
+                width : squareSize
+
+                x: squareSize * positionX
+                y: squareSize * positionY
+
+                source: getImgPath(type, piece)
+
+                MouseArea {
+                    anchors.fill: parent
+                    drag.target: parent
+
+                    property int startX: 0
+                    property int startY: 0
+
+                    onPressed: {
+                        gameBoard.figureChosen = true;
+                        startX = parent.x;
+                        startY = parent.y;
+                        console.log("Pick on", startX  / squareSize, startY  / squareSize)
+                        logic.calculateAvailableMoves(startX / squareSize, startY / squareSize)
+                    }
+
+                    onReleased: {
+                        gameBoard.figureChosen = false;
+                        var fromX = startX / squareSize;
+                        var fromY = startY / squareSize;
+                        var toX   = (parent.x + mouseX) / squareSize;
+                        var toY   = (parent.y + mouseY) / squareSize;
+
+                        if (!logic.move(fromX, fromY, toX, toY)) {
+                            parent.x = startX;
+                            parent.y = startY;
+                        }
+                    }
+                }
+            }
+        }
+        Repeater {
+
+            model: logic.availableMoves
+            Rectangle {
+                visible: hint.checked && gameBoard.figureChosen
+                height: squareSize
+                width : squareSize
+                color: "red"
+                opacity: 0.3
+                x: squareSize * modelData.x
+                y: squareSize * modelData.y
+            }
+        }
     }
 
     Button {
-      id: startButton
-      anchors.left: gameBoard.right
-      anchors.right: parent.right
-      anchors.leftMargin: 10
-      anchors.rightMargin: 10
-      
-      text: "Clear"
+        id: startButton
+        anchors.left: gameBoard.right
+        anchors.right: parent.right
+        anchors.leftMargin: 10
+        anchors.rightMargin: 10
 
-      onClicked: {
-        logic.clear();
-      }
+        text: "Clear"
+
+        onClicked: {
+            logic.clear();
+        }
+    }
+
+    CheckBox {
+        id: hint
+        anchors {
+            top: startButton.bottom
+            topMargin: 10
+            left: startButton.left
+        }
+
+        text: qsTr("Hint")
+        checked: true
     }
 }
