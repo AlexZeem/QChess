@@ -55,7 +55,8 @@ void Logic::Impl::initPosition()
     }
 }
 
-int Logic::Impl::findByPosition(int x, int y) {
+int Logic::Impl::findByPosition(int x, int y)
+{
     for (int i(0); i<figures.size(); ++i) {
         if (figures[i].x != x || figures[i].y != y ) {
             continue;
@@ -86,12 +87,15 @@ void Logic::Impl::calculateAvailableMoves(int index)
         break;
     case FIGURE_PAWN:
         startY = figure.type == FIGURE_WHITE ? 6 : 1;
-        if (figure.y == startY && findByPosition(figure.x, figure.y - 2 * direction) < 0) {
-            availableMoves << QPair<int, int>(figure.x, figure.y - 2 * direction);
+
+        //move forward
+        if (figure.y - 1 * direction < BOARD_SIZE && figure.y - 1 * direction > 0 && findByPosition(figure.x, figure.y - 1 * direction) < 0) {
+            availableMoves << QPair<int, int>(figure.x, figure.y - 1 * direction);
         }
 
-        if (findByPosition(figure.x, figure.y - 1 * direction) < 0) {
-            availableMoves << QPair<int, int>(figure.x, figure.y - 1 * direction);
+        //first move
+        if (figure.y == startY && !availableMoves.isEmpty() && findByPosition(figure.x, figure.y - 2 * direction) < 0) {
+            availableMoves << QPair<int, int>(figure.x, figure.y - 2 * direction);
         }
 
         enemyIndex = findByPosition(figure.x - 1, figure.y - 1 * direction);
@@ -116,10 +120,11 @@ Logic::Logic(QObject *parent)
     impl->initPosition();
 }
 
-Logic::~Logic() {
-}
+Logic::~Logic()
+{}
 
-int Logic::boardSize() const {
+int Logic::boardSize() const
+{
     return BOARD_SIZE;
 }
 
@@ -127,7 +132,8 @@ QVariantList Logic::availableMoves()
 {
     QVariantList result;
 
-    for (const auto i : impl->availableMoves) {
+    for (const auto i : impl->availableMoves)
+    {
         QVariantMap cell;
         cell["x"] = i.first;
         cell["y"] = i.second;
@@ -137,11 +143,13 @@ QVariantList Logic::availableMoves()
     return result;
 }
 
-int Logic::rowCount(const QModelIndex & ) const {
+int Logic::rowCount(const QModelIndex & ) const
+{
     return impl->figures.size();
 }
 
-QHash<int, QByteArray> Logic::roleNames() const { 
+QHash<int, QByteArray> Logic::roleNames() const
+{
     QHash<int, QByteArray> names;
     names.insert(Roles::Type      , "type");
     names.insert(Roles::Piece     , "piece");
@@ -150,7 +158,8 @@ QHash<int, QByteArray> Logic::roleNames() const {
     return names;
 }
 
-QVariant Logic::data(const QModelIndex & modelIndex, int role) const { 
+QVariant Logic::data(const QModelIndex & modelIndex, int role) const
+{
     if (!modelIndex.isValid()) {
         return QVariant();
     }
@@ -179,21 +188,13 @@ void Logic::clear() {
     endResetModel();
 }
 
-bool Logic::move(int fromX, int fromY, int toX, int toY) {
+void Logic::move(int fromX, int fromY, int toX, int toY)
+{
     int index = impl->findByPosition(fromX, fromY);
     qDebug() << "move" << index << fromX << fromY << toX << toY;
 
-    if (index < 0) {
-        return false;
-    }
-
-    if (toX < 0 || toX >= BOARD_SIZE || toY < 0 || toY >= BOARD_SIZE) {
-        return false;
-    }
-
-    if (impl->availableMoves.isEmpty()) {
-        qDebug() << "no-no-no!";
-        return false;
+    if (index < 0 || toX < 0 || toX >= BOARD_SIZE || toY < 0 || toY >= BOARD_SIZE || impl->availableMoves.isEmpty()) {
+        return;
     }
 
     bool available = false;
@@ -206,15 +207,18 @@ bool Logic::move(int fromX, int fromY, int toX, int toY) {
 
     if (!available) {
         qDebug() << "move not available!";
-        return false;
+        return;
     }
 
     int enemyIndex = impl->findByPosition(toX, toY);
     if (available && enemyIndex >= 0) {
+        qDebug() << "atack!";
         impl->figures.removeAt(enemyIndex);
-
         beginRemoveRows(QModelIndex(), enemyIndex, enemyIndex);
         endRemoveRows();
+        if (enemyIndex < index) {
+            --index;
+        }
     }
 
     impl->figures[index].x = toX;
@@ -222,12 +226,12 @@ bool Logic::move(int fromX, int fromY, int toX, int toY) {
     QModelIndex topLeft = createIndex(index, 0);
     QModelIndex bottomRight = createIndex(index, 0);
     emit dataChanged(topLeft, bottomRight);
-    return true;
 }
 
 void Logic::calculateAvailableMoves(int fromX, int fromY)
 {
     int index = impl->findByPosition(fromX, fromY);
+    qDebug() << "calculateAvailableMoves" << index << fromX << fromY;
     if (index < 0) return;
 
     impl->calculateAvailableMoves(index);

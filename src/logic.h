@@ -8,6 +8,7 @@ class Logic: public QAbstractListModel
     Q_OBJECT
     Q_ENUMS(FigureType FigurePiece)
 
+    Q_PROPERTY(int boardSize READ boardSize CONSTANT)
     Q_PROPERTY(QVariantList availableMoves READ availableMoves NOTIFY availableMovesChanged)
 
 public:
@@ -42,13 +43,12 @@ public:
     explicit Logic(QObject *parent = 0);
     ~Logic();
 
-    Q_PROPERTY(int boardSize READ boardSize CONSTANT)
-    int boardSize() const;
 
+    int boardSize() const;
     QVariantList availableMoves();
 
     Q_INVOKABLE void clear();
-    Q_INVOKABLE bool move(int fromX, int fromY, int toX, int toY);
+    Q_INVOKABLE void move(int fromX, int fromY, int toX, int toY);
     Q_INVOKABLE void calculateAvailableMoves(int fromX, int fromY);
 
 signals:
