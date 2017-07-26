@@ -20,6 +20,7 @@ struct Logic::Impl
 {
     QList<Figure> figures;
     QList<QPair<int, int>> availableMoves;
+    QMap<QPair<int, int>, bool> boardState;
 
     void initPosition();
     int findByPosition(int x, int y);
@@ -29,29 +30,47 @@ struct Logic::Impl
 void Logic::Impl::initPosition()
 {
     figures << Figure { FIGURE_WHITE, FIGURE_ROOK, 0, 7 };
+    boardState[QPair<int, int>(0, 7)] = true;
     figures << Figure { FIGURE_WHITE, FIGURE_KNIGHT, 1, 7 };
+    boardState[QPair<int, int>(1, 7)] = true;
     figures << Figure { FIGURE_WHITE, FIGURE_BISHOP, 2, 7 };
+    boardState[QPair<int, int>(2, 7)] = true;
     figures << Figure { FIGURE_WHITE, FIGURE_QUEEN, 3, 7 };
+    boardState[QPair<int, int>(3, 7)] = true;
     figures << Figure { FIGURE_WHITE, FIGURE_KING, 4, 7 };
+    boardState[QPair<int, int>(4, 7)] = true;
     figures << Figure { FIGURE_WHITE, FIGURE_BISHOP, 5, 7 };
+    boardState[QPair<int, int>(5, 7)] = true;
     figures << Figure { FIGURE_WHITE, FIGURE_KNIGHT, 6, 7 };
+    boardState[QPair<int, int>(6, 7)] = true;
     figures << Figure { FIGURE_WHITE, FIGURE_ROOK, 7, 7 };
+    boardState[QPair<int, int>(7, 7)] = true;
 
     for (int i = 0; i < 8; ++i) {
         figures << Figure { FIGURE_WHITE, FIGURE_PAWN, i, 6 };
+        boardState[QPair<int, int>(i, 6)] = true;
     }
 
     figures << Figure { FIGURE_BLACK, FIGURE_ROOK, 0, 0 };
+    boardState[QPair<int, int>(0, 0)] = true;
     figures << Figure { FIGURE_BLACK, FIGURE_KNIGHT, 1, 0 };
+    boardState[QPair<int, int>(1, 0)] = true;
     figures << Figure { FIGURE_BLACK, FIGURE_BISHOP, 2, 0 };
+    boardState[QPair<int, int>(2, 0)] = true;
     figures << Figure { FIGURE_BLACK, FIGURE_QUEEN, 3, 0 };
+    boardState[QPair<int, int>(3, 0)] = true;
     figures << Figure { FIGURE_BLACK, FIGURE_KING, 4, 0 };
+    boardState[QPair<int, int>(4, 0)] = true;
     figures << Figure { FIGURE_BLACK, FIGURE_BISHOP, 5, 0 };
+    boardState[QPair<int, int>(5, 0)] = true;
     figures << Figure { FIGURE_BLACK, FIGURE_KNIGHT, 6, 0 };
+    boardState[QPair<int, int>(6, 0)] = true;
     figures << Figure { FIGURE_BLACK, FIGURE_ROOK, 7, 0 };
+    boardState[QPair<int, int>(7, 0)] = true;
 
     for (int i = 0; i < 8; ++i) {
         figures << Figure { FIGURE_BLACK, FIGURE_PAWN, i, 1 };
+        boardState[QPair<int, int>(i, 1)] = true;
     }
 }
 
@@ -89,24 +108,30 @@ void Logic::Impl::calculateAvailableMoves(int index)
         startY = figure.type == FIGURE_WHITE ? 6 : 1;
 
         //move forward
-        if (figure.y - 1 * direction < BOARD_SIZE && figure.y - 1 * direction > 0 && findByPosition(figure.x, figure.y - 1 * direction) < 0) {
+        if (figure.y - 1 * direction < BOARD_SIZE && figure.y - 1 * direction > 0 && !boardState[QPair<int, int>(figure.x, figure.y - 1 * direction)]) {
             availableMoves << QPair<int, int>(figure.x, figure.y - 1 * direction);
         }
 
         //first move
-        if (figure.y == startY && !availableMoves.isEmpty() && findByPosition(figure.x, figure.y - 2 * direction) < 0) {
+        if (figure.y == startY && !availableMoves.isEmpty() && !boardState[QPair<int, int>(figure.x, figure.y - 2 * direction)]) {
             availableMoves << QPair<int, int>(figure.x, figure.y - 2 * direction);
         }
 
-        enemyIndex = findByPosition(figure.x - 1, figure.y - 1 * direction);
-        if (enemyIndex >= 0 ) {
-            availableMoves << QPair<int, int>(figure.x - 1, figure.y - 1 * direction);
+        if (boardState[QPair<int, int>(figure.x - 1, figure.y - 1 * direction)]) {
+            enemyIndex = findByPosition(figure.x - 1, figure.y - 1 * direction);
+            if (enemyIndex >= 0 && figures[enemyIndex].type != figure.type) {
+                availableMoves << QPair<int, int>(figure.x - 1, figure.y - 1 * direction);
+            }
+
         }
 
-        enemyIndex = findByPosition(figure.x + 1, figure.y - 1 * direction);
-        if (enemyIndex >= 0 && figures[enemyIndex].type != figure.type) {
-            availableMoves << QPair<int, int>(figure.x + 1, figure.y - 1 * direction);
+        if (boardState[QPair<int, int>(figure.x + 1, figure.y - 1 * direction)]) {
+            enemyIndex = findByPosition(figure.x + 1, figure.y - 1 * direction);
+            if (enemyIndex >= 0 && figures[enemyIndex].type != figure.type) {
+                availableMoves << QPair<int, int>(figure.x + 1, figure.y - 1 * direction);
+            }
         }
+
         break;
     default:
         break;
@@ -184,6 +209,7 @@ QVariant Logic::data(const QModelIndex & modelIndex, int role) const
 void Logic::clear() {
     beginResetModel();
     impl->figures.clear();
+    impl->boardState.clear();
     impl->initPosition();
     endResetModel();
 }
@@ -221,8 +247,10 @@ void Logic::move(int fromX, int fromY, int toX, int toY)
         }
     }
 
+    impl->boardState.remove(QPair<int, int>(fromX, fromY));
     impl->figures[index].x = toX;
     impl->figures[index].y = toY;
+    impl->boardState[QPair<int, int>(toX, toY)] = true;
     QModelIndex topLeft = createIndex(index, 0);
     QModelIndex bottomRight = createIndex(index, 0);
     emit dataChanged(topLeft, bottomRight);
