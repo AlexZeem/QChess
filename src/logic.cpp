@@ -24,7 +24,9 @@ struct Logic::Impl
 
     void initPosition();
     int findByPosition(int x, int y);
+    bool isAvailable(int x, int y, FigureType type);
     void calculateAvailableMoves(int index);
+    void promote(int index, FigurePiece toPiece);
 };
 
 void Logic::Impl::initPosition()
@@ -85,6 +87,21 @@ int Logic::Impl::findByPosition(int x, int y)
     return -1;
 }
 
+bool Logic::Impl::isAvailable(int x, int y, FigureType type)
+{
+    if (x >= BOARD_SIZE || x < 0 || y >= BOARD_SIZE || y < 0) {
+        return false;
+    }
+
+    int enemyIndex = -1;
+    if (!boardState[QPair<int, int>(x, y)]
+            || ((enemyIndex = findByPosition(x, y)) >= 0 && figures[enemyIndex].type != type)) {
+        return true;
+    }
+
+    return false;
+}
+
 void Logic::Impl::calculateAvailableMoves(int index)
 {
     Figure figure = figures[index];
@@ -92,9 +109,42 @@ void Logic::Impl::calculateAvailableMoves(int index)
     int enemyIndex = -1;
     int startY = -1;
     int direction = figure.type == FIGURE_WHITE ? 1 : -1;
+    bool outOfBoundaries = false;
 
     switch (figure.piece) {
     case FIGURE_KING:
+        if (isAvailable(figure.x, figure.y + 1, figure.type)) {
+            availableMoves << QPair<int, int>(figure.x, figure.y + 1);
+        }
+
+        if (isAvailable(figure.x + 1, figure.y + 1, figure.type)) {
+            availableMoves << QPair<int, int>(figure.x + 1, figure.y + 1);
+        }
+
+        if (isAvailable(figure.x + 1, figure.y, figure.type)) {
+            availableMoves << QPair<int, int>(figure.x + 1, figure.y);
+        }
+
+        if (isAvailable(figure.x + 1, figure.y - 1, figure.type)) {
+            availableMoves << QPair<int, int>(figure.x + 1, figure.y - 1);
+        }
+
+        if (isAvailable(figure.x, figure.y - 1, figure.type)) {
+            availableMoves << QPair<int, int>(figure.x, figure.y - 1);
+        }
+
+        if (isAvailable(figure.x - 1, figure.y - 1, figure.type)) {
+            availableMoves << QPair<int, int>(figure.x - 1, figure.y - 1);
+        }
+
+        if (isAvailable(figure.x - 1, figure.y, figure.type)) {
+            availableMoves << QPair<int, int>(figure.x - 1, figure.y);
+        }
+
+        if (isAvailable(figure.x - 1, figure.y + 1, figure.type)) {
+            availableMoves << QPair<int, int>(figure.x - 1, figure.y + 1);
+        }
+
         break;
     case FIGURE_QUEEN:
         break;
@@ -107,33 +157,35 @@ void Logic::Impl::calculateAvailableMoves(int index)
     case FIGURE_PAWN:
         startY = figure.type == FIGURE_WHITE ? 6 : 1;
 
-        //move forward
-        if (figure.y - 1 * direction < BOARD_SIZE && figure.y - 1 * direction > 0 && !boardState[QPair<int, int>(figure.x, figure.y - 1 * direction)]) {
-            availableMoves << QPair<int, int>(figure.x, figure.y - 1 * direction);
+        if (isAvailable(figure.x, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1), figure.type)) {
+            availableMoves << QPair<int, int>(figure.x, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1));
         }
 
         //first move
-        if (figure.y == startY && !availableMoves.isEmpty() && !boardState[QPair<int, int>(figure.x, figure.y - 2 * direction)]) {
-            availableMoves << QPair<int, int>(figure.x, figure.y - 2 * direction);
+        if (figure.y == (figure.type == FIGURE_WHITE ? 6 : 1) && !availableMoves.isEmpty()
+            && isAvailable(figure.x, figure.y - 2 * (figure.type == FIGURE_WHITE ? 1 : -1), figure.type)) {
+            availableMoves << QPair<int, int>(figure.x, figure.y - 2 * (figure.type == FIGURE_WHITE ? 1 : -1));
         }
 
-        if (boardState[QPair<int, int>(figure.x - 1, figure.y - 1 * direction)]) {
-            enemyIndex = findByPosition(figure.x - 1, figure.y - 1 * direction);
-            if (enemyIndex >= 0 && figures[enemyIndex].type != figure.type) {
-                availableMoves << QPair<int, int>(figure.x - 1, figure.y - 1 * direction);
-            }
+        if (boardState[QPair<int, int>(figure.x - 1, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1))]
+                && isAvailable(figure.x - 1, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1), figure.type)) {
+            availableMoves << QPair<int, int>(figure.x - 1, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1));
         }
 
-        if (boardState[QPair<int, int>(figure.x + 1, figure.y - 1 * direction)]) {
-            enemyIndex = findByPosition(figure.x + 1, figure.y - 1 * direction);
-            if (enemyIndex >= 0 && figures[enemyIndex].type != figure.type) {
-                availableMoves << QPair<int, int>(figure.x + 1, figure.y - 1 * direction);
-            }
+        if (boardState[QPair<int, int>(figure.x + 1, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1))]
+                && isAvailable(figure.x + 1, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1), figure.type)) {
+            availableMoves << QPair<int, int>(figure.x + 1, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1));
         }
-
         break;
     default:
         break;
+    }
+}
+
+void Logic::Impl::promote(int index, FigurePiece toPiece)
+{
+    if (figures[index].type == FIGURE_WHITE ? figures[index].y == 0 : figures[index].y == 7) {
+        figures[index].piece = toPiece;
     }
 }
 
@@ -250,6 +302,11 @@ bool Logic::move(int fromX, int fromY, int toX, int toY)
     impl->figures[index].x = toX;
     impl->figures[index].y = toY;
     impl->boardState[QPair<int, int>(toX, toY)] = true;
+
+    if (impl->figures[index].piece == FIGURE_PAWN) {
+        impl->promote(index, FIGURE_QUEEN);
+    }
+
     QModelIndex topLeft = createIndex(index, 0);
     QModelIndex bottomRight = createIndex(index, 0);
     emit dataChanged(topLeft, bottomRight);
