@@ -14,7 +14,8 @@ class Logic: public QAbstractListModel
 public:
     enum FigureType
     {
-        FIGURE_WHITE = 0,
+        FIGURE_NONE = 0,
+        FIGURE_WHITE,
         FIGURE_BLACK
     };
 

@@ -20,7 +20,7 @@ struct Logic::Impl
 {
     QList<Figure> figures;
     QList<QPair<int, int>> availableMoves;
-    QMap<QPair<int, int>, bool> boardState;
+    QMap<QPair<int, int>, FigureType> boardState;
 
     void initPosition();
     int findByPosition(int x, int y);
@@ -32,47 +32,47 @@ struct Logic::Impl
 void Logic::Impl::initPosition()
 {
     figures << Figure { FIGURE_WHITE, FIGURE_ROOK, 0, 7 };
-    boardState[QPair<int, int>(0, 7)] = true;
+    boardState[QPair<int, int>(0, 7)] = FIGURE_WHITE;
     figures << Figure { FIGURE_WHITE, FIGURE_KNIGHT, 1, 7 };
-    boardState[QPair<int, int>(1, 7)] = true;
+    boardState[QPair<int, int>(1, 7)] = FIGURE_WHITE;
     figures << Figure { FIGURE_WHITE, FIGURE_BISHOP, 2, 7 };
-    boardState[QPair<int, int>(2, 7)] = true;
+    boardState[QPair<int, int>(2, 7)] = FIGURE_WHITE;
     figures << Figure { FIGURE_WHITE, FIGURE_QUEEN, 3, 7 };
-    boardState[QPair<int, int>(3, 7)] = true;
+    boardState[QPair<int, int>(3, 7)] = FIGURE_WHITE;
     figures << Figure { FIGURE_WHITE, FIGURE_KING, 4, 7 };
-    boardState[QPair<int, int>(4, 7)] = true;
+    boardState[QPair<int, int>(4, 7)] = FIGURE_WHITE;
     figures << Figure { FIGURE_WHITE, FIGURE_BISHOP, 5, 7 };
-    boardState[QPair<int, int>(5, 7)] = true;
+    boardState[QPair<int, int>(5, 7)] = FIGURE_WHITE;
     figures << Figure { FIGURE_WHITE, FIGURE_KNIGHT, 6, 7 };
-    boardState[QPair<int, int>(6, 7)] = true;
+    boardState[QPair<int, int>(6, 7)] = FIGURE_WHITE;
     figures << Figure { FIGURE_WHITE, FIGURE_ROOK, 7, 7 };
-    boardState[QPair<int, int>(7, 7)] = true;
+    boardState[QPair<int, int>(7, 7)] = FIGURE_WHITE;
 
     for (int i = 0; i < 8; ++i) {
         figures << Figure { FIGURE_WHITE, FIGURE_PAWN, i, 6 };
-        boardState[QPair<int, int>(i, 6)] = true;
+        boardState[QPair<int, int>(i, 6)] = FIGURE_WHITE;
     }
 
     figures << Figure { FIGURE_BLACK, FIGURE_ROOK, 0, 0 };
-    boardState[QPair<int, int>(0, 0)] = true;
+    boardState[QPair<int, int>(0, 0)] = FIGURE_BLACK;
     figures << Figure { FIGURE_BLACK, FIGURE_KNIGHT, 1, 0 };
-    boardState[QPair<int, int>(1, 0)] = true;
+    boardState[QPair<int, int>(1, 0)] = FIGURE_BLACK;
     figures << Figure { FIGURE_BLACK, FIGURE_BISHOP, 2, 0 };
-    boardState[QPair<int, int>(2, 0)] = true;
+    boardState[QPair<int, int>(2, 0)] = FIGURE_BLACK;
     figures << Figure { FIGURE_BLACK, FIGURE_QUEEN, 3, 0 };
-    boardState[QPair<int, int>(3, 0)] = true;
+    boardState[QPair<int, int>(3, 0)] = FIGURE_BLACK;
     figures << Figure { FIGURE_BLACK, FIGURE_KING, 4, 0 };
-    boardState[QPair<int, int>(4, 0)] = true;
+    boardState[QPair<int, int>(4, 0)] = FIGURE_BLACK;
     figures << Figure { FIGURE_BLACK, FIGURE_BISHOP, 5, 0 };
-    boardState[QPair<int, int>(5, 0)] = true;
+    boardState[QPair<int, int>(5, 0)] = FIGURE_BLACK;
     figures << Figure { FIGURE_BLACK, FIGURE_KNIGHT, 6, 0 };
-    boardState[QPair<int, int>(6, 0)] = true;
+    boardState[QPair<int, int>(6, 0)] = FIGURE_BLACK;
     figures << Figure { FIGURE_BLACK, FIGURE_ROOK, 7, 0 };
-    boardState[QPair<int, int>(7, 0)] = true;
+    boardState[QPair<int, int>(7, 0)] = FIGURE_BLACK;
 
     for (int i = 0; i < 8; ++i) {
         figures << Figure { FIGURE_BLACK, FIGURE_PAWN, i, 1 };
-        boardState[QPair<int, int>(i, 1)] = true;
+        boardState[QPair<int, int>(i, 1)] = FIGURE_BLACK;
     }
 }
 
@@ -93,9 +93,7 @@ bool Logic::Impl::isAvailable(int x, int y, FigureType type)
         return false;
     }
 
-    int enemyIndex = -1;
-    if (!boardState[QPair<int, int>(x, y)]
-            || ((enemyIndex = findByPosition(x, y)) >= 0 && figures[enemyIndex].type != type)) {
+    if (boardState[QPair<int, int>(x, y)] != type) {
         return true;
     }
 
@@ -106,10 +104,6 @@ void Logic::Impl::calculateAvailableMoves(int index)
 {
     Figure figure = figures[index];
     availableMoves.clear();
-    int enemyIndex = -1;
-    int startY = -1;
-    int direction = figure.type == FIGURE_WHITE ? 1 : -1;
-    bool outOfBoundaries = false;
 
     switch (figure.piece) {
     case FIGURE_KING:
@@ -155,8 +149,6 @@ void Logic::Impl::calculateAvailableMoves(int index)
     case FIGURE_BISHOP:
         break;
     case FIGURE_PAWN:
-        startY = figure.type == FIGURE_WHITE ? 6 : 1;
-
         if (isAvailable(figure.x, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1), figure.type)) {
             availableMoves << QPair<int, int>(figure.x, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1));
         }
@@ -167,12 +159,12 @@ void Logic::Impl::calculateAvailableMoves(int index)
             availableMoves << QPair<int, int>(figure.x, figure.y - 2 * (figure.type == FIGURE_WHITE ? 1 : -1));
         }
 
-        if (boardState[QPair<int, int>(figure.x - 1, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1))]
+        if (boardState[QPair<int, int>(figure.x - 1, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1))] != FIGURE_NONE
                 && isAvailable(figure.x - 1, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1), figure.type)) {
             availableMoves << QPair<int, int>(figure.x - 1, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1));
         }
 
-        if (boardState[QPair<int, int>(figure.x + 1, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1))]
+        if (boardState[QPair<int, int>(figure.x + 1, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1))] != FIGURE_NONE
                 && isAvailable(figure.x + 1, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1), figure.type)) {
             availableMoves << QPair<int, int>(figure.x + 1, figure.y - 1 * (figure.type == FIGURE_WHITE ? 1 : -1));
         }
@@ -301,7 +293,7 @@ bool Logic::move(int fromX, int fromY, int toX, int toY)
     impl->boardState.remove(QPair<int, int>(fromX, fromY));
     impl->figures[index].x = toX;
     impl->figures[index].y = toY;
-    impl->boardState[QPair<int, int>(toX, toY)] = true;
+    impl->boardState[QPair<int, int>(toX, toY)] = impl->figures[index].type;
 
     if (impl->figures[index].piece == FIGURE_PAWN) {
         impl->promote(index, FIGURE_QUEEN);
