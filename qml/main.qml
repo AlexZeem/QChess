@@ -55,48 +55,31 @@ ApplicationWindow {
         Repeater {
             model: logic
 
-            Image {
-                height: squareSize
-                width : squareSize
-
+            FigureTile {
+                iconPath: getImgPath(type, piece)
                 x: squareSize * positionX
                 y: squareSize * positionY
+                property int startX: 0
+                property int startY: 0
 
-                source: getImgPath(type, piece)
+                onPressed: {
+                    gameBoard.figureChosen = true;
+                    startX = x;
+                    startY = y;
+                    console.log("Pick on", x, y)
+                    logic.calculateAvailableMoves(startX, startY)
+                }
 
-                MouseArea {
-                    anchors.fill: parent
-                    drag.target: parent
-
-                    property int startX: 0
-                    property int startY: 0
-
-                    onPressed: {
-                        gameBoard.figureChosen = true;
-                        startX = parent.x;
-                        startY = parent.y;
-                        console.log("Pick on", startX  / squareSize, startY  / squareSize)
-                        logic.calculateAvailableMoves(startX / squareSize, startY / squareSize)
-                    }
-
-                    onReleased: {
-                        gameBoard.figureChosen = false;
-                        var fromX = startX / squareSize;
-                        var fromY = startY / squareSize;
-                        var toX   = (parent.x + mouseX) / squareSize;
-                        var toY   = (parent.y + mouseY) / squareSize;
-
-                        if (!logic.move(fromX, fromY, toX, toY)) {
-                            parent.x = startX;
-                            parent.y = startY;
-                        }
-                    }
+                onReleased: {
+                    gameBoard.figureChosen = false;
+                    logic.move(startX, startY, x, y)
                 }
             }
         }
-        Repeater {
 
+        Repeater {
             model: logic.availableMoves
+
             Rectangle {
                 visible: hint.checked && gameBoard.figureChosen
                 height: squareSize

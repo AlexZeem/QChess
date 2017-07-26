@@ -3,6 +3,7 @@
         <file>images/black_bishop.svg</file>
         <file>images/black_king.svg</file>
         <file>images/black_knight.svg</file>
+        <file>images/black_pawn.svg</file>
         <file>images/black_queen.svg</file>
         <file>images/black_rook.svg</file>
         <file>images/chess_board.jpg</file>
@@ -14,6 +15,6 @@
         <file>images/white_rook.svg</file>
         <file>qml/main.qml</file>
         <file>qml/startingScreen.qml</file>
-        <file>images/black_pawn.svg</file>
+        <file>qml/FigureTile.qml</file>
     </qresource>
 </RCC>
