@@ -209,9 +209,12 @@ bool Logic::move(int fromX, int fromY, int toX, int toY) {
         return false;
     }
 
-    if (available && impl->findByPosition(toX, toY) >= 0) {
-        qDebug() << "fight!";
-        return false;
+    int enemyIndex = impl->findByPosition(toX, toY);
+    if (available && enemyIndex >= 0) {
+        impl->figures.removeAt(enemyIndex);
+
+        beginRemoveRows(QModelIndex(), enemyIndex, enemyIndex);
+        endRemoveRows();
     }
 
     impl->figures[index].x = toX;
