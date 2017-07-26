@@ -122,7 +122,6 @@ void Logic::Impl::calculateAvailableMoves(int index)
             if (enemyIndex >= 0 && figures[enemyIndex].type != figure.type) {
                 availableMoves << QPair<int, int>(figure.x - 1, figure.y - 1 * direction);
             }
-
         }
 
         if (boardState[QPair<int, int>(figure.x + 1, figure.y - 1 * direction)]) {
@@ -214,13 +213,13 @@ void Logic::clear() {
     endResetModel();
 }
 
-void Logic::move(int fromX, int fromY, int toX, int toY)
+bool Logic::move(int fromX, int fromY, int toX, int toY)
 {
     int index = impl->findByPosition(fromX, fromY);
     qDebug() << "move" << index << fromX << fromY << toX << toY;
 
     if (index < 0 || toX < 0 || toX >= BOARD_SIZE || toY < 0 || toY >= BOARD_SIZE || impl->availableMoves.isEmpty()) {
-        return;
+        return false;
     }
 
     bool available = false;
@@ -233,7 +232,7 @@ void Logic::move(int fromX, int fromY, int toX, int toY)
 
     if (!available) {
         qDebug() << "move not available!";
-        return;
+        return false;
     }
 
     int enemyIndex = impl->findByPosition(toX, toY);
@@ -254,6 +253,7 @@ void Logic::move(int fromX, int fromY, int toX, int toY)
     QModelIndex topLeft = createIndex(index, 0);
     QModelIndex bottomRight = createIndex(index, 0);
     emit dataChanged(topLeft, bottomRight);
+    return true;
 }
 
 void Logic::calculateAvailableMoves(int fromX, int fromY)

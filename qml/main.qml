@@ -11,6 +11,7 @@ ApplicationWindow {
     height: 600
     
     property int squareSize: 70
+    property int turnType: Figure.FIGURE_WHITE
 
     function getImgPath(type, piece)
     {
@@ -59,6 +60,7 @@ ApplicationWindow {
                 iconPath: getImgPath(type, piece)
                 x: squareSize * positionX
                 y: squareSize * positionY
+                enabled: turnType === type
                 property int startX: 0
                 property int startY: 0
 
@@ -72,7 +74,9 @@ ApplicationWindow {
 
                 onReleased: {
                     gameBoard.figureChosen = false;
-                    logic.move(startX, startY, x, y)
+                    if (logic.move(startX, startY, x, y)) {
+                        turnType = turnType === Figure.FIGURE_WHITE ? Figure.FIGURE_BLACK : Figure.FIGURE_WHITE;
+                    }
                 }
             }
         }

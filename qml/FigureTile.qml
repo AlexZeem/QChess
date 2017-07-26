@@ -41,7 +41,12 @@ Item {
                 ParentChange { target: tile; parent: root }
                 AnchorChanges { target: tile; anchors.verticalCenter: undefined; anchors.horizontalCenter: undefined }
             }
+        }
 
+        Rectangle {
+            anchors.fill: parent
+            color: "gray"
+            opacity: root.enabled ? 0 : 0.25
         }
     }
 }

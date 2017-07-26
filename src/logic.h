@@ -48,7 +48,7 @@ public:
     QVariantList availableMoves();
 
     Q_INVOKABLE void clear();
-    Q_INVOKABLE void move(int fromX, int fromY, int toX, int toY);
+    Q_INVOKABLE bool move(int fromX, int fromY, int toX, int toY);
     Q_INVOKABLE void calculateAvailableMoves(int fromX, int fromY);
 
 signals:
