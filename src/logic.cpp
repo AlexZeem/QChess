@@ -28,6 +28,7 @@ struct Logic::Impl
     void checkFromLeftToRight(int x, int y, FigureType type);
     void checkDiagonals(int x, int y, FigureType type);
     void checkLShape(int x, int y, FigureType type);
+    bool isInCheck(int x, int y, FigureType type);
     void checkKingMove(int x, int y, FigureType type);
     void checkPawnMove(int x, int y, FigureType type, bool isFirstMove = false);
     void calculateAvailableMoves(int index);
@@ -216,10 +217,27 @@ void Logic::Impl::checkLShape(int x, int y, FigureType type)
     }
 }
 
+bool Logic::Impl::isInCheck(int x, int y, FigureType type) {
+    for (int i = 1; y - i >= 0; ++i) {
+        if (boardState[QPair<int, int>(x, y - i)] == FIGURE_NONE) {
+            continue;
+        }
+
+        if (boardState[QPair<int, int>(x, y - i)] != type) {
+            int index = findByPosition(x, y - i);
+            if (index >= 0 && (figures[index].piece == FIGURE_QUEEN || figures[index].piece == FIGURE_ROOK)) {
+                return true;
+            }
+        }
+        break;
+    }
+
+    return false;
+}
+
 void Logic::Impl::checkKingMove(int x, int y, FigureType type)
 {
-    //TODO: add check for Check
-    if (y - 1 >= 0 && boardState[QPair<int, int>(x, y - 1)] != type) {
+    if (y - 1 >= 0 && boardState[QPair<int, int>(x, y - 1)] != type && !isInCheck(x, y - 1, type)) {
         availableMoves << QPair<int, int>(x, y - 1);
     }
 
