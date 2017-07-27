@@ -24,10 +24,11 @@ struct Logic::Impl
 
     int findByPosition(int x, int y);
     void initPosition();
-    void checkForwardBackward(int x, int y, FigureType type, int bottom = 0, int top = BOARD_SIZE);
-    void checkFromLeftToRight(int x, int y, FigureType type, int bottom = 0, int top = BOARD_SIZE);
-    void checkDiagonals(int x, int y, FigureType type, int bottomX = 0, int bottomY = 0, int topX = BOARD_SIZE, int topY = BOARD_SIZE);
+    void checkForwardBackward(int x, int y, FigureType type);
+    void checkFromLeftToRight(int x, int y, FigureType type);
+    void checkDiagonals(int x, int y, FigureType type);
     void checkLShape(int x, int y, FigureType type);
+    void checkKingMove(int x, int y, FigureType type);
     void checkPawnMove(int x, int y, FigureType type, bool isFirstMove = false);
     void calculateAvailableMoves(int index);
     void promote(int index, FigurePiece toPiece);
@@ -91,13 +92,9 @@ void Logic::Impl::initPosition()
     }
 }
 
-void Logic::Impl::checkForwardBackward(int x, int y, FigureType type, int bottom, int top)
+void Logic::Impl::checkForwardBackward(int x, int y, FigureType type)
 {
-    if (x >= BOARD_SIZE || x < 0 || y >= BOARD_SIZE || y < 0) {
-        return;
-    }
-
-    for (int i = 1; y - i >= bottom; ++i) {
+    for (int i = 1; y - i >= 0; ++i) {
         if (boardState[QPair<int, int>(x, y - i)] != type) {
             availableMoves << QPair<int, int>(x, y - i);
         }
@@ -107,7 +104,7 @@ void Logic::Impl::checkForwardBackward(int x, int y, FigureType type, int bottom
         }
     }
 
-    for (int i = 1; y + i < top; ++i) {
+    for (int i = 1; y + i < BOARD_SIZE; ++i) {
         if (boardState[QPair<int, int>(x, y + i)] != type) {
             availableMoves << QPair<int, int>(x, y + i);
         }
@@ -118,13 +115,9 @@ void Logic::Impl::checkForwardBackward(int x, int y, FigureType type, int bottom
     }
 }
 
-void Logic::Impl::checkFromLeftToRight(int x, int y, FigureType type, int bottom, int top)
+void Logic::Impl::checkFromLeftToRight(int x, int y, FigureType type)
 {
-    if (x >= BOARD_SIZE || x < 0 || y >= BOARD_SIZE || y < 0) {
-        return;
-    }
-
-    for (int i = 1; x - i >= bottom; ++i) {
+    for (int i = 1; x - i >= 0; ++i) {
         if (boardState[QPair<int, int>(x - i, y)] != type) {
             availableMoves << QPair<int, int>(x - i, y);
         }
@@ -134,7 +127,7 @@ void Logic::Impl::checkFromLeftToRight(int x, int y, FigureType type, int bottom
         }
     }
 
-    for (int i = 1; x + i < top; ++i) {
+    for (int i = 1; x + i < BOARD_SIZE; ++i) {
         if (boardState[QPair<int, int>(x + i, y)] != type) {
             availableMoves << QPair<int, int>(x + i, y);
         }
@@ -145,13 +138,9 @@ void Logic::Impl::checkFromLeftToRight(int x, int y, FigureType type, int bottom
     }
 }
 
-void Logic::Impl::checkDiagonals(int x, int y, FigureType type, int bottomX, int bottomY, int topX, int topY)
+void Logic::Impl::checkDiagonals(int x, int y, FigureType type)
 {
-    if (x >= BOARD_SIZE || x < 0 || y >= BOARD_SIZE || y < 0) {
-        return;
-    }
-
-    for (int i = 1; x + i < topX && y - i >= bottomY; ++i) {
+    for (int i = 1; x + i < BOARD_SIZE && y - i >= 0; ++i) {
         if (boardState[QPair<int, int>(x + i, y - i)] != type) {
             availableMoves << QPair<int, int>(x + i, y - i);
         }
@@ -161,7 +150,7 @@ void Logic::Impl::checkDiagonals(int x, int y, FigureType type, int bottomX, int
         }
     }
 
-    for (int i = 1; x - i >= bottomX && y + i < topY; ++i) {
+    for (int i = 1; x - i >= 0 && y + i < BOARD_SIZE; ++i) {
         if (boardState[QPair<int, int>(x - i, y + i)] != type) {
             availableMoves << QPair<int, int>(x - i, y + i);
         }
@@ -171,7 +160,7 @@ void Logic::Impl::checkDiagonals(int x, int y, FigureType type, int bottomX, int
         }
     }
 
-    for (int i = 1; x - i >= bottomX && y - i >= bottomY; ++i) {
+    for (int i = 1; x - i >= 0 && y - i >= 0; ++i) {
         if (boardState[QPair<int, int>(x - i, y - i)] != type) {
             availableMoves << QPair<int, int>(x - i, y - i);
         }
@@ -181,7 +170,7 @@ void Logic::Impl::checkDiagonals(int x, int y, FigureType type, int bottomX, int
         }
     }
 
-    for (int i = 1; x + i < topX && y + i < topY; ++i) {
+    for (int i = 1; x + i < BOARD_SIZE && y + i < BOARD_SIZE; ++i) {
         if (boardState[QPair<int, int>(x + i, y + i)] != type) {
             availableMoves << QPair<int, int>(x + i, y + i);
         }
@@ -194,10 +183,6 @@ void Logic::Impl::checkDiagonals(int x, int y, FigureType type, int bottomX, int
 
 void Logic::Impl::checkLShape(int x, int y, FigureType type)
 {
-    if (x >= BOARD_SIZE || x < 0 || y >= BOARD_SIZE || y < 0) {
-        return;
-    }
-
     if (x + 1 < BOARD_SIZE && y - 2 >= 0 && boardState[QPair<int, int>(x + 1, y - 2)] != type) {
         availableMoves << QPair<int, int>(x + 1, y - 2);
     }
@@ -231,12 +216,44 @@ void Logic::Impl::checkLShape(int x, int y, FigureType type)
     }
 }
 
-void Logic::Impl::checkPawnMove(int x, int y, FigureType type, bool isFirstMove)
+void Logic::Impl::checkKingMove(int x, int y, FigureType type)
 {
-    if (x >= BOARD_SIZE || x < 0 || y >= BOARD_SIZE || y < 0) {
-        return;
+    //TODO: add check for Check
+    if (y - 1 >= 0 && boardState[QPair<int, int>(x, y - 1)] != type) {
+        availableMoves << QPair<int, int>(x, y - 1);
     }
 
+    if (y + 1 < BOARD_SIZE && boardState[QPair<int, int>(x, y + 1)] != type) {
+        availableMoves << QPair<int, int>(x, y + 1);
+    }
+
+    if (x - 1 >= 0 && boardState[QPair<int, int>(x - 1, y)] != type) {
+        availableMoves << QPair<int, int>(x - 1, y);
+    }
+
+    if (x + 1 < BOARD_SIZE && boardState[QPair<int, int>(x + 1, y)] != type) {
+        availableMoves << QPair<int, int>(x + 1, y);
+    }
+
+    if (x + 1 < BOARD_SIZE && y - 1 >= 0 && boardState[QPair<int, int>(x + 1, y - 1)] != type) {
+        availableMoves << QPair<int, int>(x + 1, y - 1);
+    }
+
+    if (x + 1 < BOARD_SIZE && y + 1 < BOARD_SIZE && boardState[QPair<int, int>(x + 1, y + 1)] != type) {
+        availableMoves << QPair<int, int>(x + 1, y + 1);
+    }
+
+    if (x - 1 >= 0 && y + 1 < BOARD_SIZE && boardState[QPair<int, int>(x - 1, y + 1)] != type) {
+        availableMoves << QPair<int, int>(x - 1, y + 1);
+    }
+
+    if (x - 1 >= 0 && y - 1 >= 0 && boardState[QPair<int, int>(x - 1, y - 1)] != type) {
+        availableMoves << QPair<int, int>(x - 1, y - 1);
+    }
+}
+
+void Logic::Impl::checkPawnMove(int x, int y, FigureType type, bool isFirstMove)
+{
     int newY = y - 1 * (type == FIGURE_WHITE ? 1 : -1);
     if (newY >= 0 && newY < BOARD_SIZE && boardState[QPair<int, int>(x, newY)] == FIGURE_NONE) {
         availableMoves << QPair<int, int>(x, newY);
@@ -268,11 +285,7 @@ void Logic::Impl::calculateAvailableMoves(int index)
 
     switch (figure.piece) {
     case FIGURE_KING:
-        checkForwardBackward(figure.x, figure.y, figure.type, figure.y - 1 > 0 ? figure.y - 1 : 0, figure.y + 2 < BOARD_SIZE ? figure.y + 2 : BOARD_SIZE);
-        checkFromLeftToRight(figure.x, figure.y, figure.type, figure.x - 1 > 0 ? figure.x - 1 : 0, figure.x + 2 < BOARD_SIZE ? figure.x + 2 : BOARD_SIZE);
-        checkDiagonals(figure.x, figure.y, figure.type,
-                       figure.x - 1 > 0 ? figure.x - 1 : 0, figure.y - 1 > 0 ? figure.y - 1 : 0,
-                       figure.x + 2 < BOARD_SIZE ? figure.x + 2 : BOARD_SIZE, figure.y + 2 < BOARD_SIZE ? figure.y + 2 : BOARD_SIZE);
+        checkKingMove(figure.x, figure.y, figure.type);
         break;
     case FIGURE_QUEEN:
         checkForwardBackward(figure.x, figure.y, figure.type);
