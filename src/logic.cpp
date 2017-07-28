@@ -392,31 +392,31 @@ void Logic::Impl::checkKingMove(int x, int y, FigureType type)
         availableMoves << QPair<int, int>(x, y - 1);
     }
 
-    if (y + 1 < BOARD_SIZE && boardState[QPair<int, int>(x, y + 1)] != type) {
+    if (y + 1 < BOARD_SIZE && boardState[QPair<int, int>(x, y + 1)] != type && !isInCheck(x, y + 1, type)) {
         availableMoves << QPair<int, int>(x, y + 1);
     }
 
-    if (x - 1 >= 0 && boardState[QPair<int, int>(x - 1, y)] != type) {
+    if (x - 1 >= 0 && boardState[QPair<int, int>(x - 1, y)] != type && !isInCheck(x - 1, y, type)) {
         availableMoves << QPair<int, int>(x - 1, y);
     }
 
-    if (x + 1 < BOARD_SIZE && boardState[QPair<int, int>(x + 1, y)] != type) {
+    if (x + 1 < BOARD_SIZE && boardState[QPair<int, int>(x + 1, y)] != type && !isInCheck(x + 1, y, type)) {
         availableMoves << QPair<int, int>(x + 1, y);
     }
 
-    if (x + 1 < BOARD_SIZE && y - 1 >= 0 && boardState[QPair<int, int>(x + 1, y - 1)] != type) {
+    if (x + 1 < BOARD_SIZE && y - 1 >= 0 && boardState[QPair<int, int>(x + 1, y - 1)] != type && !isInCheck(x + 1, y - 1, type)) {
         availableMoves << QPair<int, int>(x + 1, y - 1);
     }
 
-    if (x + 1 < BOARD_SIZE && y + 1 < BOARD_SIZE && boardState[QPair<int, int>(x + 1, y + 1)] != type) {
+    if (x + 1 < BOARD_SIZE && y + 1 < BOARD_SIZE && boardState[QPair<int, int>(x + 1, y + 1)] != type && !isInCheck(x + 1, y + 1, type)) {
         availableMoves << QPair<int, int>(x + 1, y + 1);
     }
 
-    if (x - 1 >= 0 && y + 1 < BOARD_SIZE && boardState[QPair<int, int>(x - 1, y + 1)] != type) {
+    if (x - 1 >= 0 && y + 1 < BOARD_SIZE && boardState[QPair<int, int>(x - 1, y + 1)] != type && !isInCheck(x - 1, y + 1, type)) {
         availableMoves << QPair<int, int>(x - 1, y + 1);
     }
 
-    if (x - 1 >= 0 && y - 1 >= 0 && boardState[QPair<int, int>(x - 1, y - 1)] != type) {
+    if (x - 1 >= 0 && y - 1 >= 0 && boardState[QPair<int, int>(x - 1, y - 1)] != type && !isInCheck(x - 1, y - 1, type)) {
         availableMoves << QPair<int, int>(x - 1, y - 1);
     }
 }
@@ -622,6 +622,7 @@ void Logic::calculateAvailableMoves(int fromX, int fromY)
     emit availableMovesChanged();
 
     if (impl->figures[index].piece == FIGURE_KING && impl->availableMoves.isEmpty()) {
+        qDebug() << "checkmate";
         emit checkmate();
     }
 }
