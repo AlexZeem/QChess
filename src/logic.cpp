@@ -28,6 +28,7 @@ struct Logic::Impl
     void checkFromLeftToRight(int x, int y, FigureType type);
     void checkDiagonals(int x, int y, FigureType type);
     void checkLShape(int x, int y, FigureType type);
+    bool isEnemyInPath(int x, int y, FigureType type, FigurePiece piece1, FigurePiece piece2);
     bool isInCheck(int x, int y, FigureType type);
     void checkKingMove(int x, int y, FigureType type);
     void checkPawnMove(int x, int y, FigureType type, bool isFirstMove = false);
@@ -217,19 +218,169 @@ void Logic::Impl::checkLShape(int x, int y, FigureType type)
     }
 }
 
+bool Logic::Impl::isEnemyInPath(int x, int y, FigureType type, FigurePiece piece1, FigurePiece piece2)
+{
+    if (boardState[QPair<int, int>(x, y)] != type) {
+        int index = findByPosition(x, y);
+        if (index >= 0 && (figures[index].piece == piece1 || figures[index].piece == piece2)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool Logic::Impl::isInCheck(int x, int y, FigureType type) {
     for (int i = 1; y - i >= 0; ++i) {
         if (boardState[QPair<int, int>(x, y - i)] == FIGURE_NONE) {
             continue;
         }
-
-        if (boardState[QPair<int, int>(x, y - i)] != type) {
-            int index = findByPosition(x, y - i);
-            if (index >= 0 && (figures[index].piece == FIGURE_QUEEN || figures[index].piece == FIGURE_ROOK)) {
-                return true;
-            }
+        if (isEnemyInPath(x, y - i, type, FIGURE_QUEEN, FIGURE_ROOK)) {
+            return true;
         }
         break;
+    } // forward
+
+    for (int i = 1; y + i < BOARD_SIZE; ++i) {
+        if (boardState[QPair<int, int>(x, y + i)] == FIGURE_NONE) {
+            continue;
+        }
+        if (isEnemyInPath(x, y + i, type, FIGURE_QUEEN, FIGURE_ROOK)) {
+            return true;
+        }
+        break;
+    } // backward
+
+    for (int i = 1; x - i >= 0; ++i) {
+        if (boardState[QPair<int, int>(x - i, y)] == FIGURE_NONE) {
+            continue;
+        }
+        if (isEnemyInPath(x - i, y, type, FIGURE_QUEEN, FIGURE_ROOK)) {
+            return true;
+        }
+        break;
+    } // left
+
+    for (int i = 1; x + i < BOARD_SIZE; ++i) {
+        if (boardState[QPair<int, int>(x + i, y)] == FIGURE_NONE) {
+            continue;
+        }
+        if (isEnemyInPath(x + i, y, type, FIGURE_QUEEN, FIGURE_ROOK)) {
+            return true;
+        }
+        break;
+    } // right
+
+    for (int i = 1; x + i < BOARD_SIZE && y - i >= 0; ++i) {
+        if (boardState[QPair<int, int>(x + i, y - i)] == FIGURE_NONE) {
+            continue;
+        }
+        if (isEnemyInPath(x + i, y - i, type, FIGURE_QUEEN, FIGURE_BISHOP)) {
+            return true;
+        }
+        break;
+    } // to top right
+
+    for (int i = 1; x - i >= 0 && y + i < BOARD_SIZE; ++i) {
+        if (boardState[QPair<int, int>(x - i, y + i)] == FIGURE_NONE) {
+            continue;
+        }
+        if (isEnemyInPath(x - i, y + i, type, FIGURE_QUEEN, FIGURE_BISHOP)) {
+            return true;
+        }
+        break;
+    } // to bottom left
+
+    for (int i = 1; x - i >= 0 && y - i >= 0; ++i) {
+        if (boardState[QPair<int, int>(x - i, y - i)] == FIGURE_NONE) {
+            continue;
+        }
+        if (isEnemyInPath(x - i, y - i, type, FIGURE_QUEEN, FIGURE_BISHOP)) {
+            return true;
+        }
+        break;
+    } // to top left
+
+    for (int i = 1; x + i < BOARD_SIZE && y + i < BOARD_SIZE; ++i) {
+        if (boardState[QPair<int, int>(x + i, y + i)] == FIGURE_NONE) {
+            continue;
+        }
+        if (isEnemyInPath(x + i, y + i, type, FIGURE_QUEEN, FIGURE_BISHOP)) {
+            return true;
+        }
+        break;
+    } // to bottom right
+
+    if (x + 1 < BOARD_SIZE && y - 2 >= 0 && boardState[QPair<int, int>(x + 1, y - 2)] != FIGURE_NONE) {
+        if (isEnemyInPath(x + 1, y - 2, type, FIGURE_KNIGHT, FIGURE_KNIGHT)) {
+            return true;
+        }
+    }
+
+    if (x - 1 >= 0 && y - 2 >= 0 && boardState[QPair<int, int>(x - 1, y - 2)] != FIGURE_NONE) {
+        if (isEnemyInPath(x - 1, y - 2, type, FIGURE_KNIGHT, FIGURE_KNIGHT)) {
+            return true;
+        }
+    }
+
+    if (x + 1 < BOARD_SIZE && y + 2 < BOARD_SIZE && boardState[QPair<int, int>(x + 1, y + 2)] != FIGURE_NONE) {
+        if (isEnemyInPath(x + 1, y + 2, type, FIGURE_KNIGHT, FIGURE_KNIGHT)) {
+            return true;
+        }
+    }
+
+    if (x - 1 >= 0 && y + 2 < BOARD_SIZE && boardState[QPair<int, int>(x - 1, y + 2)] != FIGURE_NONE) {
+        if (isEnemyInPath(x - 1, y + 2, type, FIGURE_KNIGHT, FIGURE_KNIGHT)) {
+            return true;
+        }
+    }
+
+    if (x + 2 < BOARD_SIZE && y - 1 >= 0 && boardState[QPair<int, int>(x + 2, y - 1)] != FIGURE_NONE) {
+        if (isEnemyInPath(x + 2, y - 1, type, FIGURE_KNIGHT, FIGURE_KNIGHT)) {
+            return true;
+        }
+    }
+
+    if (x + 2 < BOARD_SIZE && y + 1 < BOARD_SIZE && boardState[QPair<int, int>(x + 2, y + 1)] != FIGURE_NONE) {
+        if (isEnemyInPath(x + 2, y + 1, type, FIGURE_KNIGHT, FIGURE_KNIGHT)) {
+            return true;
+        }
+    }
+
+    if (x - 2 >= 0 && y - 1 >= 0 && boardState[QPair<int, int>(x - 2, y - 1)] != FIGURE_NONE) {
+        if (isEnemyInPath(x - 2, y - 1, type, FIGURE_KNIGHT, FIGURE_KNIGHT)) {
+            return true;
+        }
+    }
+
+    if (x - 2 >= 0 && y + 1 < BOARD_SIZE && boardState[QPair<int, int>(x - 2, y + 1)] != FIGURE_NONE) {
+        if (isEnemyInPath(x - 2, y + 1, type, FIGURE_KNIGHT, FIGURE_KNIGHT)) {
+            return true;
+        }
+    }
+
+    if (x - 1 >= 0 && y - 1 >= 0 && boardState[QPair<int, int>(x - 1, y - 1)] != FIGURE_NONE) {
+        if (isEnemyInPath(x - 1, y - 1, type, FIGURE_PAWN, FIGURE_PAWN)) {
+            return true;
+        }
+    }
+
+    if (x + 1 >= 0 && y - 1 >= 0 && boardState[QPair<int, int>(x + 1, y - 1)] != FIGURE_NONE) {
+        if (isEnemyInPath(x + 1, y - 1, type, FIGURE_PAWN, FIGURE_PAWN)) {
+            return true;
+        }
+    }
+
+    if (x - 1 >= 0 && y + 1 < BOARD_SIZE && boardState[QPair<int, int>(x - 1, y + 1)] != FIGURE_NONE) {
+        if (isEnemyInPath(x - 1, y + 1, type, FIGURE_PAWN, FIGURE_PAWN)) {
+            return true;
+        }
+    }
+
+    if (x + 1 >= 0 && y + 1 < BOARD_SIZE && boardState[QPair<int, int>(x + 1, y + 1)] != FIGURE_NONE) {
+        if (isEnemyInPath(x + 1, y + 1, type, FIGURE_PAWN, FIGURE_PAWN)) {
+            return true;
+        }
     }
 
     return false;
