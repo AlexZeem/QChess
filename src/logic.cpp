@@ -620,4 +620,8 @@ void Logic::calculateAvailableMoves(int fromX, int fromY)
     impl->calculateAvailableMoves(index);
     qDebug() << "calculateAvailableMoves" << index << fromX << fromY << "(" << impl->availableMoves.size() << ")";
     emit availableMovesChanged();
+
+    if (impl->figures[index].piece == FIGURE_KING && impl->availableMoves.isEmpty()) {
+        emit checkmate();
+    }
 }

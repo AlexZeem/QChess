@@ -54,6 +54,7 @@ public:
 
 signals:
     void availableMovesChanged();
+    void checkmate();
 
 protected:
     int rowCount(const QModelIndex & parent) const override;
