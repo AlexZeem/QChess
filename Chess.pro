@@ -7,7 +7,8 @@ QT += qml quick widgets
 
 SOURCES += src/main.cpp \
     src/logic.cpp \
-    src/board.cpp
+    src/board.cpp \
+    src/history.cpp
 
 RESOURCES += qml.qrc
 
@@ -16,4 +17,5 @@ QML_IMPORT_PATH =
 
 HEADERS += \
     src/logic.h \
-    src/board.h
+    src/board.h \
+    src/history.h

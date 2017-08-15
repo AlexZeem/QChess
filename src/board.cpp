@@ -1,5 +1,6 @@
 #include <QList>
 #include <QMap>
+#include "history.h"
 #include "board.h"
 
 #include <QDebug>
@@ -27,50 +28,14 @@ struct Figure
     Board::FigurePiece piece;
 };
 
-namespace {
-    QString cast(Board::FigurePiece type)
-    {
-        switch (type) {
-        case Board::FIGURE_PIECE_KING:   return "K";
-        case Board::FIGURE_PIECE_QUEEN:  return "Q";
-        case Board::FIGURE_PIECE_ROOK:   return "R";
-        case Board::FIGURE_PIECE_KNIGHT: return "N";
-        case Board::FIGURE_PIECE_BISHOP: return "B";
-        case Board::FIGURE_PIECE_PAWN:
-        case Board::FIGURE_PIECE_NONE:
-        default: return "";
-        }
-
-        return "";
-    }
-
-    QString cast(int x)
-    {
-        switch (x) {
-        case 0: return "a";
-        case 1: return "b";
-        case 2: return "c";
-        case 3: return "d";
-        case 4: return "e";
-        case 5: return "f";
-        case 6: return "g";
-        case 7: return "h";
-        default: return "";
-        }
-
-        return "";
-    }
-} //namespace helper
-
 struct Board::Impl
 {
     QList<Position> items;
     QMap<QPair<int, int>, Figure> figures;
-    QStringList history;
+    History history;
 
     void initPosition();
     int  findByPosition(int x, int y);
-    void updateHistory(int fromX, int fromY, int toX, int toY, Board::FigurePiece piece, bool nextTurn = true);
 };
 
 void Board::Impl::initPosition()
@@ -129,19 +94,6 @@ int Board::Impl::findByPosition(int x, int y)
         return i;
     }
     return -1;
-}
-
-void Board::Impl::updateHistory(int fromX, int fromY, int toX, int toY, Board::FigurePiece piece, bool nextTurn)
-{
-    QString turn = nextTurn || history.isEmpty() ? "" : history.last() + " ";
-    turn += cast(piece) + cast(fromX) + QString::number(fromY + 1) + "-" + cast(toX) + QString::number(toY + 1);
-
-    if (!nextTurn && !history.isEmpty()) {
-        history.pop_back();
-    }
-    history << turn;
-
-    qDebug() << history;
 }
 
 Board::Board(QObject *parent)
@@ -222,7 +174,7 @@ bool Board::move(int fromX, int fromY, int toX, int toY)
     impl->figures[QPair<int, int>(toX, toY)] = figure;
     //qDebug() << "move [" << cast(fromX) << fromY << "] to [" << cast(toX) << toY << "] type" << figure.type << "piece" << cast(figure.piece);
 
-    impl->updateHistory(fromX, fromY, toX, toY, figure.piece, figure.type == FIGURE_TYPE_WHITE);
+    impl->history.update(fromX, fromY, toX, toY, figure.piece, figure.type == FIGURE_TYPE_WHITE);
 
     QModelIndex topLeft = createIndex(index, 0);
     QModelIndex bottomRight = createIndex(index, 0);
