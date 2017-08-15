@@ -11,26 +11,26 @@ ApplicationWindow {
     height: 600
     
     property int squareSize: 70
-    property int turnType: Figure.FIGURE_WHITE
+    property int turnType: Figure.FIGURE_TYPE_WHITE
 
     function getImgPath(type, piece)
     {
         var imgPath = ""
 
         switch (type) {
-        case Figure.FIGURE_BLACK: imgPath += "/images/black"; break;
-        case Figure.FIGURE_WHITE:
+        case Figure.FIGURE_TYPE_BLACK: imgPath += "/images/black"; break;
+        case Figure.FIGURE_TYPE_WHITE:
         default:
             imgPath += "/images/white"; break;
         }
 
         switch (piece) {
-        case Figure.FIGURE_KING: imgPath += "_king.svg"; break;
-        case Figure.FIGURE_QUEEN: imgPath += "_queen.svg"; break;
-        case Figure.FIGURE_ROOK: imgPath += "_rook.svg"; break;
-        case Figure.FIGURE_KNIGHT: imgPath += "_knight.svg"; break;
-        case Figure.FIGURE_BISHOP: imgPath += "_bishop.svg"; break;
-        case Figure.FIGURE_PAWN:
+        case Figure.FIGURE_PIECE_KING: imgPath += "_king.svg"; break;
+        case Figure.FIGURE_PIECE_QUEEN: imgPath += "_queen.svg"; break;
+        case Figure.FIGURE_PIECE_ROOK: imgPath += "_rook.svg"; break;
+        case Figure.FIGURE_PIECE_KNIGHT: imgPath += "_knight.svg"; break;
+        case Figure.FIGURE_PIECE_BISHOP: imgPath += "_bishop.svg"; break;
+        case Figure.FIGURE_PIECE_PAWN:
         default:
             imgPath += "_pawn.svg"; break;
         }
@@ -42,8 +42,8 @@ ApplicationWindow {
         id: gameBoard
         x: 0
         y: 0
-        width : logic.boardSize * squareSize
-        height: logic.boardSize * squareSize
+        width : board.size * squareSize
+        height: board.size * squareSize
 
         property bool figureChosen: false
 
@@ -53,8 +53,9 @@ ApplicationWindow {
             width: gameBoard.width
         }
 
+
         Repeater {
-            model: logic
+            model: board
 
             FigureTile {
                 iconPath: getImgPath(type, piece)
@@ -69,13 +70,13 @@ ApplicationWindow {
                     startX = x;
                     startY = y;
                     console.log("Pick on", x, y)
-                    logic.calculateAvailableMoves(startX, startY)
+                    //logic.calculateAvailableMoves(startX, startY)
                 }
 
                 onReleased: {
                     gameBoard.figureChosen = false;
-                    if (logic.move(startX, startY, x, y)) {
-                        turnType = turnType === Figure.FIGURE_WHITE ? Figure.FIGURE_BLACK : Figure.FIGURE_WHITE;
+                    if (board.move(startX, startY, x, y)) {
+                        turnType = turnType === Figure.FIGURE_TYPE_WHITE ? Figure.FIGURE_TYPE_BLACK : Figure.FIGURE_TYPE_WHITE;
                     }
                 }
             }
@@ -106,7 +107,7 @@ ApplicationWindow {
         text: "Clear"
 
         onClicked: {
-            logic.clear();
+            board.clear();
         }
     }
 
