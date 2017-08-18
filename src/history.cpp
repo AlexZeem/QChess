@@ -5,16 +5,17 @@
 
 struct History::Impl
 {
-    QStringList history;
-
-    QString xToFiles(int x);
+    QString xToFile(int x);
+    int fileToX(QString file);
     QString yToRank(int y);
+    int rankToY(QString rank);
     QString pieceToName(int piece);
 
-    void update(int fromX, int fromY, int toX, int toY, int piece, bool nextTurn);
+    QStringList history;
+    int historyPosition;
 };
 
-QString History::Impl::xToFiles(int x)
+QString History::Impl::xToFile(int x)
 {
     switch (x) {
     case 0: return "a";
@@ -31,9 +32,32 @@ QString History::Impl::xToFiles(int x)
     return "";
 }
 
+int History::Impl::fileToX(QString file)
+{
+    qDebug() << file.toInt();
+//    switch (file) {
+//    case "a": return 0;
+//    case "b": return 1;
+//    case "c": return 2;
+//    case "d": return 3;
+//    case "e": return 4;
+//    case "f": return 5;
+//    case "g": return 6;
+//    case "h": return 7;
+//    default: return -1;
+//    }
+
+    return -1;
+}
+
 QString History::Impl::yToRank(int y)
 {
     return QString::number(y + 1);
+}
+
+int History::Impl::rankToY(QString rank)
+{
+    return rank.toInt() - 1;
 }
 
 QString History::Impl::pieceToName(int piece)
@@ -51,19 +75,6 @@ QString History::Impl::pieceToName(int piece)
     return "";
 }
 
-void History::Impl::update(int fromX, int fromY, int toX, int toY, int piece, bool nextTurn)
-{
-    QString turn = nextTurn || history.isEmpty() ? "" : history.last() + " ";
-    turn += pieceToName(piece) + xToFiles(fromX) + yToRank(fromY) + "-" + xToFiles(toX) + yToRank(toY);
-
-    if (!nextTurn && !history.isEmpty()) {
-        history.pop_back();
-    }
-    history << turn;
-
-    qDebug() << history;
-}
-
 History::History(QObject *parent)
     : QObject(parent)
     , impl(new Impl())
@@ -72,7 +83,27 @@ History::History(QObject *parent)
 History::~History()
 { }
 
-void History::update(int fromX, int fromY, int toX, int toY, int piece, bool nextTurn)
+void History::update(int fromX, int fromY, int toX, int toY, int piece)
 {
-    impl->update(fromX, fromY, toX, toY, piece, nextTurn);
+    impl->history << impl->pieceToName(piece) + impl->xToFile(fromX) + impl->yToRank(fromY) + "-" + impl->xToFile(toX) + impl->yToRank(toY);
+    qDebug() << impl->history;
+    ++impl->historyPosition;
+}
+
+void History::previous()
+{
+    if (impl->history.size() < 2 || impl->historyPosition - 1 < 0) {
+        return;
+    }
+
+    qDebug() << "prev: " << impl->history.at(--impl->historyPosition);
+}
+
+void History::next()
+{
+    if (impl->historyPosition + 1 > impl->history.size() - 1) {
+        return;
+    }
+
+    qDebug() << "next: " << impl->history.at(++impl->historyPosition);
 }

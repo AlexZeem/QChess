@@ -122,4 +122,34 @@ ApplicationWindow {
         text: qsTr("Hint")
         checked: true
     }
+
+    Button {
+        id: prevButton
+        anchors {
+            bottom: nextButton.top
+            bottomMargin: 10
+            left: startButton.left
+        }
+
+        text: "Previous"
+
+        onClicked: {
+            board.previous();
+        }
+    }
+
+    Button {
+        id: nextButton
+        anchors {
+            bottom: parent.bottom
+            bottomMargin: 10
+            left: startButton.left
+        }
+
+        text: "Next"
+
+        onClicked: {
+            board.next();
+        }
+    }
 }

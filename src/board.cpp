@@ -174,11 +174,21 @@ bool Board::move(int fromX, int fromY, int toX, int toY)
     impl->figures[QPair<int, int>(toX, toY)] = figure;
     //qDebug() << "move [" << cast(fromX) << fromY << "] to [" << cast(toX) << toY << "] type" << figure.type << "piece" << cast(figure.piece);
 
-    impl->history.update(fromX, fromY, toX, toY, figure.piece, figure.type == FIGURE_TYPE_WHITE);
+    impl->history.update(fromX, fromY, toX, toY, figure.piece);
 
     QModelIndex topLeft = createIndex(index, 0);
     QModelIndex bottomRight = createIndex(index, 0);
     emit dataChanged(topLeft, bottomRight);
 
     return true;
+}
+
+void Board::previous()
+{
+    impl->history.previous();
+}
+
+void Board::next()
+{
+    impl->history.next();
 }

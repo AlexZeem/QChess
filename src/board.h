@@ -37,6 +37,9 @@ public:
     Q_INVOKABLE void clear();
     Q_INVOKABLE bool move(int fromX, int fromY, int toX, int toY);
 
+    Q_INVOKABLE void previous();
+    Q_INVOKABLE void next();
+
 signals:
 
 protected:
